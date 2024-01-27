@@ -10,23 +10,24 @@ type Server struct {
 	Addr string
 }
 
-func NewServer(conf config.AppConfig) *Server {
+func NewServer(conf *config.AppConfig) *Server {
 	return &Server{
-		Addr: conf.Listen,
+		Addr: conf.GrpcListen,
 	}
 }
 
 type RegisterSvc func(s *grpc.Server)
 
-func (serv *Server) Serve(register RegisterSvc) {
-	lis, err := net.Listen("tcp", serv.Addr)
+func (serv *Server) Serve(register RegisterSvc) error {
+	listener, err := net.Listen("tcp", serv.Addr)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	s := grpc.NewServer()
 	register(s)
-	err = s.Serve(lis)
+	err = s.Serve(listener)
 	if err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
